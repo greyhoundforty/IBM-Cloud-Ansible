@@ -23,12 +23,12 @@ Now that we've got our environment set up we can test that everything is correct
 
 ```
 $ ansible-playbook list-images.yml
-$ ansible-playbook list-images.yml -e "region="OTHER_VPC_REGION"
+$ ansible-playbook list-images.yml -e "region=OTHER_VPC_REGION"
 ```
 
 **Listing available compute profiles in VPC**
 
 ```shell
 $ ansible-playbook list-profiles.yml
-$ ansible-playbook list-profiles.yml -e "region="OTHER_VPC_REGION"
+$ ansible-playbook list-profiles.yml -e "region=OTHER_VPC_REGION"
 ```
