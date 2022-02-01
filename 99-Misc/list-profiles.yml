@@ -1,0 +1,16 @@
+---
+- name: List Instance Profiles
+  hosts: localhost
+  vars:
+    region: "{{ lookup('env', 'IC_REGION') }}"
+    resource_group: "{{ lookup('env', 'IC_RESOURCE_GROUP') }}"
+  collections:
+   - ibm.cloudcollection
+
+  tasks:
+    - ibm_is_instance_profiles_info:
+        region: "{{ region }}"
+      register: instance_profiles_list
+
+    - debug:
+        var: instance_profiles_list.resource.profiles | list

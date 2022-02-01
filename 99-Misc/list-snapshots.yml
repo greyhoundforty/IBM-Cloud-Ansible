@@ -1,0 +1,24 @@
+---
+- name: List IBM Cloud VPC Snapshots
+  hosts: localhost
+  vars:
+    region: "{{ lookup('env', 'IC_REGION') }}"
+    resource_group: "{{ lookup('env', 'IC_RESOURCE_GROUP') }}"
+  collections:
+   - ibm.cloudcollection
+  
+  tasks:
+    - name: Gather Resource Group ID
+      ibm_resource_group_info:
+        name: "{{ resource_group }}"
+      register: rg
+
+    - name: "Get all regional snapshots in Resource Group {{ resource_group }}"
+      ibm_is_images_info:
+        resource_group: "{{ rg.resource['id'] }}"
+      register: snapshot_list
+
+    - name: "List all regional snapshots for Resource Group {{ resource_group }} in region {{ region }}"
+      debug:
+        var: snapshot_list.resource.images |
+             items2dict(key_name='name', value_name='id')
