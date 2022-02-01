@@ -7,7 +7,7 @@ The Ansible collection uses the [IBM Cloud Terraform Provider](https://registry.
 
 In order to authenticate with the IBM Cloud and target the right region we need to declare 2 variables:
 
-```
+```shell
 export IC_API_KEY="YOUR_IBMCLOUD_API_KEY"
 export IC_REGION="IBMCLOUD_VPC_REGION"
 ```
@@ -21,7 +21,7 @@ Now that we've got our environment set up we can test that everything is correct
 
 **Listing available compute images in VPC**
 
-```
+```shell
 $ ansible-playbook list-images.yml
 $ ansible-playbook list-images.yml -e "region=OTHER_VPC_REGION"
 ```
