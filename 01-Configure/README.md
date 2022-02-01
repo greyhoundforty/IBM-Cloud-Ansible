@@ -12,7 +12,7 @@ export IC_API_KEY="YOUR_IBMCLOUD_API_KEY"
 export IC_REGION="IBMCLOUD_VPC_REGION"
 ```
 
-> If you need to test with a different Region but don't want to unset your Environmental Variable, you can supply the Region by appending your command with `-e region="OTHER_VPC_REGION"`. 
+> If you need to test with a different Region but don't want to unset your Environmental Variable, you can supply the Region by appending your command with `-e "region=OTHER_VPC_REGION"`. 
 
 ## Clone repo with example code
 
