@@ -1,0 +1,18 @@
+---
+- name: List VPC Images and Instance Profiles
+  hosts: localhost
+  vars:
+    ibmcloud_api_key: "{{ lookup('env', 'IC_API_KEY') }}"
+    region: "{{ lookup('env', 'IC_REGION') }}"
+  collections:
+   - ibm.cloudcollection
+
+  tasks:             
+    - name: "Pull available compute images for region: {{ region }}"
+      ibm_is_instance_profiles_info:
+      register: instance_profiles_list
+
+    - name: "List available instance profiles for region: {{ region }}"
+      debug:
+        var: instance_profiles_list.resource.profiles | 
+             items2dict(key_name='name', value_name='family')
