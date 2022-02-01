@@ -1,6 +1,0 @@
----
-name_prefix: "rt-test-1"
-region: ""
-vpc_name: ""
-subnet_name: ""
-ssh_key_name: ""
