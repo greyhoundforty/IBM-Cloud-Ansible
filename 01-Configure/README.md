@@ -13,11 +13,16 @@ export IC_REGION="IBMCLOUD_VPC_REGION"
 export IC_RESOURCE_GROUP="YOUR_RESOURCE_GROUP"
 ```
 
+> If you need to test with a different Region but don't want to unset your Environmental Variable, you can supply the Region by appending your command with `-e "region=OTHER_VPC_REGION"`. 
 
-> If you need to test with a different Region but don't want to unset your Environmental Variable, you can supply the Region by appending your command with `-e region="OTHER_VPC_REGION"`. 
+## Clone repo with example code
+
+```shell
+git clone https://github.com/greyhoundforty/IBM-Cloud-Ansible.git
+cd IBM-Cloud-Ansible/01-Configure
+```
 
 ## Testing Configuration 
-
 Now that we've got our environment set up we can test that everything is correctly configured and ready to deploy resources in the nest lesson.
 
 **Listing available compute images in VPC**

@@ -17,7 +17,7 @@ Using Ansible with the IBM Cloud
     $ ansible-galaxy collection install ibm.cloudcollection
     ```
 
-[**Part 1: Configure Environmental Variables and Test**](part1/README.md)
-[**Part 2: Provision VPC and Networking resources**](part2/README.md)
-[**Part 3: Deploy Compute instances and generate inventory**](part3/README.md)
-[**Part 4: Install Consul. Vault, and Nomad on compute instances**](part4/README.md)
+[**Part 1: Configure Environmental Variables and Test**](part1/README.md)  
+[**Part 2: Provision VPC and Networking resources**](part2/README.md)  
+[**Part 3: Deploy Compute instances and generate inventory**](part3/README.md)  
+[**Part 4: Install Consul. Vault, and Nomad on compute instances**](part4/README.md)  
