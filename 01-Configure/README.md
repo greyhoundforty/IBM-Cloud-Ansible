@@ -5,11 +5,12 @@ The Ansible collection uses the [IBM Cloud Terraform Provider](https://registry.
 
 ## Set Environmental Variables 
 
-In order to authenticate with the IBM Cloud and target the right region we need to declare 2 variables:
+In order to authenticate with the IBM Cloud and target the right region and resource group we need to declare 3 variables:
 
 ```shell
 export IC_API_KEY="YOUR_IBMCLOUD_API_KEY"
 export IC_REGION="IBMCLOUD_VPC_REGION"
+export IC_RESOURCE_GROUP="YOUR_RESOURCE_GROUP"
 ```
 
 

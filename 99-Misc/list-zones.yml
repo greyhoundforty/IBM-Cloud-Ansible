@@ -1,0 +1,15 @@
+---
+- name: List Zones in current VPC region
+  hosts: localhost
+  vars:
+    region: "{{ lookup('env', 'IC_REGION') }}"
+  collections:
+   - ibm.cloudcollection
+
+  tasks:
+    - ibm_is_zones_info:
+        region_: "{{ region }}"
+      register: zone_info
+
+    - debug: 
+        msg: "{{ zone_info.resource.zones }}"

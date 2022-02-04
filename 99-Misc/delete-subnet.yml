@@ -1,0 +1,15 @@
+---
+- name: Delete subnet
+  hosts: localhost
+  vars:
+    subnet_id: "{{ subnet.id }}"
+    vpc_id: "{{ vpc.id }}"
+  collections:
+   - ibm.cloudcollection
+
+  tasks:
+    - ibm_is_subnet:
+        name: "{{ name_prefix }}-subnet"
+        state: absent
+        id: "{{ subnet_id | default(omit) }}"
+        vpc: "{{ vpc_id | default(omit) }}"

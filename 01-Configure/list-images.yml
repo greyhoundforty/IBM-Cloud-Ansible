@@ -1,5 +1,5 @@
 ---
-- name: List VPC Images and Instance Profiles
+- name: List VPC Compute images
   hosts: localhost
   vars:
     ibmcloud_api_key: "{{ lookup('env', 'IC_API_KEY') }}"

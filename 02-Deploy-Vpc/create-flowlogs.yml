@@ -1,0 +1,42 @@
+---
+- name: Create Flowlogs collector
+  hosts: localhost
+  vars:
+    ibmcloud_api_key: "{{ lookup('env', 'IC_API_KEY') }}"
+    region: "{{ lookup('env', 'IC_REGION') }}"
+    resource_group: "{{ lookup('env', 'IC_RESOURCE_GROUP') }}"
+    name_prefix: "{{ name_prefix }}"
+    cos_instance: "{{ cos_instance }}"
+  collections:
+   - ibm.cloudcollection
+
+  tasks:      
+    - name: Gather Resource Group ID
+      ibm_resource_group_info:
+        name: "{{ resource_group }}"
+      register: rg
+       
+    - name: Gather COS Instance ID
+      ibm_resource_instance_info:
+        name: "{{ cos_instance }}"
+        location: "global"
+        resource_group_id: "{{ rg.resource['id'] }}"
+        service: "cloud-object-storage"
+      register: cos_flowlogs_instance
+
+    - name: Create COS bucket for VPC Flowlogs
+      ibm_cos_bucket:
+        name: "{{ name_prefix }}-{{ region }}-vpc-flowlog-collector-bucket"
+        region_location: "{{ region }}"
+        resource_group: "{{ rg.resource['id'] }}"
+        storage_class: "standard"
+        resource_instance_id: "{{ cos_flowlogs_instance.resource['id'] }}"
+      register: flowlogs_bucket
+
+    - name: "Configure flowlogs for VPC"
+      ibm_is_flow_log: 
+        name: "{{ name_prefix }}-vpc-flowlog-collector"
+        storage_bucket: "{{ flowlogs_bucket.resource['id'] }}" 
+        target:  "{{ vpc.id }}"
+        active: True
+        resource_group: "{{ rg.resource['id'] }}"
