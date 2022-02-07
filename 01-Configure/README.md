@@ -38,3 +38,8 @@ $ ansible-playbook list-images.yml -e "region=OTHER_VPC_REGION"
 $ ansible-playbook list-profiles.yml
 $ ansible-playbook list-profiles.yml -e "region=OTHER_VPC_REGION"
 ```
+ > This command may fail due to a known issue with the Ansible collections python conversion script. The fix for me is outlined in [here](https://github.com/IBM-Cloud/ansible-collection-ibm/issues/82#issuecomment-1026995864). 
+
+## Next steps
+Once you have verified that you can (at least) list the available compute images you can move on to [Part 2](../02-Deploy-Vpc/README.md) where we will deploy some VPC resources and look at our gathered **facts** about the deployment. 
+
