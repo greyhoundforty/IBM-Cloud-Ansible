@@ -23,25 +23,25 @@ Ansible has three major kind of uses:
 
 ### Main Components of Ansible
 
-**Inventory**
+**Inventory**  
 In Ansible, an [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#intro-inventory) is a set of hosts that Ansible can work against to run commands and playbooks. Once you've defined your inventory, you can use [patterns](https://docs.ansible.com/ansible/latest/user_guide/intro_patterns.html#intro-patterns) to further refine the hosts or groups you want Ansible to run against.
 
 
-**Playbooks**
+**Playbooks**  
 Ansible [playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html) are composed of one or more `plays` in an ordered list. Each play executes part of the overall goal of the playbook, running one or more tasks. Each task calls an Ansible module. You can use the playbook to push out new configuration or confirm the configuration of remote systems.
 
 
-**Variables/Facts**
+**Variables/Facts**  
 With Ansible you can create, retrieve, or discover certain variables containing information about your remote systems or about Ansible itself. 
 
  - [Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html): Ansible uses variables to manage differences between systems. You can define these variables in your playbooks, in your inventory, in re-usable files or roles, or at the command line.
 
  - [Facts](https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html): Ansible facts are data related to your remote systems, including operating systems, IP addresses, attached filesystems, and more. With facts, you can use the behavior or state of one system as configuration on other systems.
 
-**Roles**
+**Roles**  
 [Roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. After you group your content in roles, you can easily reuse them and share them with other users.
 
-**Ad-hoc commands**
+**Ad-hoc commands**  
 Ansible [ad hoc](https://docs.ansible.com/ansible/latest/user_guide/intro_adhoc.html) commands are great for tasks you repeat rarely. For example, if you want to power off all the machines in your lab for Christmas vacation, you could execute a quick one-liner in Ansible without writing a playbook
 
 ## Prerequisites
