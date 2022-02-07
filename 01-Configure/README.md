@@ -13,7 +13,7 @@ export IC_REGION="IBMCLOUD_VPC_REGION"
 export IC_RESOURCE_GROUP="YOUR_RESOURCE_GROUP"
 ```
 
-> If you need to test with a different Region but don't want to unset your Environmental Variable, you can supply the Region by appending your command with `-e "region=OTHER_VPC_REGION"`. 
+> If you need to test with different variables, such as targeting a different region or resource group you can use the `-e "variable=updated_value"` syntax. For example to target a different region you would use: `-e "region=OTHER_VPC_REGION"`
 
 ## Clone repo with example code
 

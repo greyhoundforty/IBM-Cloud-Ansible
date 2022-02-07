@@ -22,6 +22,12 @@
         region_: "{{ region }}"
       register: regional_zones
 
+    - name: Save Zones as fact
+      set_fact:
+        cacheable: True
+        zones: "{{ regional_zones.resource.zones }}"
+
+
     - name: "Create VPC in {{ region }} region"
       ibm_is_vpc:
         name: "{{ name_prefix }}-vpc"
@@ -41,7 +47,7 @@
       ibm_is_public_gateway:
         name: "{{ name_prefix }}-pubgw"
         vpc: "{{ vpc_create_output.resource['id'] }}"
-        zone: "{{ regional_zones.resource.zones[0] }}"
+        zone: "{{ zones[0] }}"
         resource_group: "{{ rg.resource['id'] }}"
         tags: 
           - "owner:ryantiffany"
@@ -60,7 +66,7 @@
         id: "{{ subnet.id | default(omit) }}"
         vpc: "{{ vpc_create_output.resource['id'] }}"
         total_ipv4_address_count: 256
-        zone: "{{ regional_zones.resource.zones[0] }}"
+        zone: "{{ zones[0] }}"
         resource_group: "{{ rg.resource['id'] }}"
         public_gateway: "{{ pubgw_create_output.resource['id'] }}"
         tags: 
@@ -96,7 +102,7 @@
           - "{{ sshkey.resource['id'] }}"
         primary_network_interface:
           - subnet: "{{ subnet.id }}"
-        zone: "{{ regional_zones.resource.zones[0] }}"
+        zone: "{{ zones[0] }}"
         resource_group: "{{ rg.resource['id'] }}"
         tags: 
           - "owner:ryantiffany"
@@ -125,6 +131,17 @@
       debug:
         msg: "IP Address: {{ fip.address }}"
 
+    - name: Configure Security Group Rule to open SSH to a single IP
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ vpc_create_output.resource['default_security_group'] }}"
+        direction: inbound
+        remote: "{{ remote_ip }}"
+        tcp:
+          - port_max: 22
+            port_min: 22
+      when: remote_ip is defined
+
     - name: Configure Security Group Rule to open SSH on the VSI
       ibm_is_security_group_rule:
         state: available
@@ -134,6 +151,7 @@
         tcp:
           - port_max: 22
             port_min: 22
+      when: remote_ip is undefined
 
     - name: Add VSI to Ansible inventory
       add_host:
