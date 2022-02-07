@@ -59,11 +59,11 @@ In order to use the examples in this repository you will need to have the follow
     $ ansible-galaxy collection install ibm.cloudcollection
     ```
 
-Once those are done you can move on to [Part 1](part1/README.md) where you will configure your Ansible environment for IBM Cloud and run some test playbooks. 
+Once those are done you can move on to [Part 1](01-Configure/README.md) where you will configure your Ansible environment for IBM Cloud and run some test playbooks. 
 
 ## Guides
 
-[**Part 1: Configure Environmental Variables and Test**](part1/README.md)  
-[**Part 2: Provision VPC and Networking resources**](part2/README.md)  
-[**Part 3: Deploy Compute instances and generate inventory**](part3/README.md)  
-[**Part 4: Install Consul. Vault, and Nomad on compute instances**](part4/README.md)  
+[**Part 1: Configure Environmental Variables and Test**](01-Configure/README.md)  
+[**Part 2: Provision VPC and Networking resources**](02-Deploy-Vpc/README.md)  
+[**Part 3: Deploy Compute instances and generate inventory**](03-Deploy-Compute/README.md)  
+[**Part 4: Install Consul. Vault, and Nomad on compute instances**](04-Install-Hashistack/README.md)  
