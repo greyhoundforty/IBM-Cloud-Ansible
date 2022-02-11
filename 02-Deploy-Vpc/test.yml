@@ -1,0 +1,13 @@
+---
+- name: Test tasks not ready for public
+  hosts: localhost
+  vars_files: 
+    - vars.yml
+  collections:
+   - ibm.cloudcollection
+
+  tasks:
+    - name: Get date and time
+      debug: 
+        var: ansible_date_time.date 
+

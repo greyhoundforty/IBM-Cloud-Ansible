@@ -71,6 +71,6 @@ Once those are done you can move on to [Part 1](01-Configure/README.md) where yo
 ## Guides
 
 [**Part 1: Configure Environmental Variables and Test**](01-Configure/README.md)  
-[**Part 2: Provision VPC and Networking resources**](02-Deploy-Vpc/README.md)  
-[**Part 3: Deploy Compute instances and generate inventory**](03-Deploy-Compute/README.md)  
-[**Part 4: Install Consul. Vault, and Nomad on compute instances**](04-Install-Hashistack/README.md)  
+[**Part 2: Provision VPC and associated network resources**](02-Deploy-Vpc/README.md)    
+[**Part 3: Deploy Compute instances and generate inventory**](04-Deploy-Compute/README.md)  
+[**Part 4: Install Consul. Vault, and Nomad on compute instances**](05-Install-Hashistack/README.md)  

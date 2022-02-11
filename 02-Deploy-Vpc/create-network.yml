@@ -1,0 +1,43 @@
+---
+- name: Create VPC Public Gateway and Subnet 
+  hosts: localhost
+  vars_files: 
+    - vars.yml
+  collections:
+   - ibm.cloudcollection
+  tasks:
+    - name: "Configure VPC Public Gateway in {{ zones[0] }}"
+      ibm_is_public_gateway:
+        name: "{{ name_prefix }}-pubgw"
+        vpc: "{{ vpc.id }}"
+        zone: "{{ zones[0] }}"
+        resource_group: "{{ resourcegroup }}"
+        tags: 
+          - "owner:ryantiffany"
+          - "deployedwith:ansible"
+      register: pubgw_create_output
+
+    - name: Save Public Gateway as fact
+      set_fact:
+        cacheable: True
+        pubgw: "{{ pubgw_create_output.resource }}"
+
+    - name: "Configure VPC Subnet in {{ regional_zones.resource.zones[0] }}"
+      ibm_is_subnet:
+        name: "{{ name_prefix }}-subnet"
+        state: available
+        id: "{{ subnet.id | default(omit) }}"
+        vpc: "{{ vpc.id }}"
+        total_ipv4_address_count: 256
+        zone: "{{ zones[0] }}"
+        resource_group: "{{ resourcegroup }}"
+        public_gateway: "{{ pubgw.id }}"
+        tags: 
+          - "owner:ryantiffany"
+          - "deployedwith:ansible"
+      register: subnet_create_output
+
+    - name: Save VPC Subnet as fact
+      set_fact:
+        cacheable: True
+        subnet: "{{ subnet_create_output.resource }}"
