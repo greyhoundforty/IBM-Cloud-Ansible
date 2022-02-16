@@ -1,5 +1,5 @@
 # Overview
-Using Ansible with the IBM Cloud
+This repository is meant for anyone getting started with Ansible. While the code examples are mainly geared towards IBM Cloud, the lessons are applicable across Ansible providers. 
 
 ## Ansible 101: What is Ansible?
 
@@ -21,9 +21,9 @@ Ansible has three major kind of uses:
  - [SaltStack](https://saltproject.io/)  
  - [Nomad](https://www.nomadproject.io/)
 
-### Main Components of Ansible
+## Main Components of Ansible
 
-**Inventory**  
+### Inventory  
 In Ansible, an [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#intro-inventory) is a set of hosts that Ansible can work against to run commands and playbooks. Once you've defined your inventory, you can use [patterns](https://docs.ansible.com/ansible/latest/user_guide/intro_patterns.html#intro-patterns) to further refine the hosts or groups you want Ansible to run against.
 
 Here is an example `INI` style inventory file from my homelab environment:
@@ -54,9 +54,13 @@ The headings in brackets are group names, which are used in classifying sets of 
  - The `development` or `deployment` target for the resources (Prod, Dev, etc)
 
 
-You can also store variable values that relate to a specific host or group in inventory. Group variables are a convenient way to apply variables to multiple hosts at once. 
+You can also store variables that relate to a specific host or group of hosts in your inventory. Group variables are a convenient way to apply variables to multiple hosts at once. 
 
 ```ini
+
+[monitoring]
+titan ansible_host=192.168.4.199 ansible_user=deploy ansible_port=6759
+
 [homelab:vars]
 ansible_become=yes
 ansible_ssh_extra_args='-o "StrictHostKeyChecking=no" -o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p ryan@192.168.122.4"'
@@ -67,10 +71,11 @@ ansible_user=ryan
 local ansible_connection=local
 ```
 
+
 > If a host is a member of multiple groups, Ansible will read the variables for all groups and then determine which to use based on its own [merging logic](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#how-we-merge).
  
 
-**Playbooks**  
+### Playbooks  
 Ansible [playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html) are composed of one or more `plays` in an ordered list. Each play executes part of the overall goal of the playbook, running one or more tasks. Each task calls an Ansible module. You can use playbooks to push out new configuration, udpate your database servers, or run complex shell scripts. 
 
 This is an example of a basic playbook that utilizes the built in Ansible [copy](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html) module. 
@@ -95,7 +100,7 @@ At a high level you can think of playbooks as outlining the following 3 things:
  - A set of tasks to run against the hosts (What) 
  - Logic to determine which tasks need to be run on which hosts (When)
 
-**Variables/Facts**  
+### Variables and Facts  
 With Ansible you can create, retrieve, or discover certain variables containing information about your remote systems or about Ansible itself. 
 
  - [Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html): Ansible uses variables to manage differences between systems. You can define these variables in your playbooks, in your inventory, in re-usable files or roles, or at the command line.
@@ -133,10 +138,10 @@ In this playbook we are utilizing the built in `os_family` fact to determine whi
 
 You can also register facts from the output of one task to be used across other tasks and playbooks. You do this using the [set_fact](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/set_fact_module.html) module, but we'll dive more in to that in when we actually deploy an IBM Cloud VPC. 
 
-**Roles**  
+### Roles  
 [Roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. After you group your content in roles, you can easily reuse them and share them with other users.
 
-**Ad-hoc commands**  
+### Ad-hoc commands  
 Ansible [ad hoc](https://docs.ansible.com/ansible/latest/user_guide/intro_adhoc.html) commands are great for tasks you repeat rarely. For example, if you want to power off all the machines in your lab for Christmas vacation, you could execute a quick one-liner in Ansible without writing a playbook
 
 ## Prerequisites
