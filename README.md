@@ -100,10 +100,9 @@ At a high level you can think of playbooks as outlining the following 3 things:
  - A set of tasks to run against the hosts (What) 
  - Logic to determine which tasks need to be run on which hosts (When)
 
-### Variables and Facts  
-With Ansible you can create, retrieve, or discover certain variables containing information about your remote systems or about Ansible itself. 
+### Variables  
 
- - [Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html): Ansible uses variables to manage differences between systems. You can define these variables in your playbooks, in your inventory, in re-usable files or roles, or at the command line.
+Ansible uses [Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to manage differences between systems. You can define these variables in your playbooks, in your inventory, in re-usable files or roles, or at the command line. They can then be used by playbooks, for loops, and conditional `when` statements. 
 
 In this example we are providing Variables at the playbook level. We are explicitally setting 2 of the variables, and using Ansibles built in ability to lookup Environmental Variables for our API Key variable.
 
@@ -114,9 +113,13 @@ In this example we are providing Variables at the playbook level. We are explici
       ibmcloud_api_key: "{{ lookup('env', 'IC_API_KEY') }}"
       region: "us-south"
       project: "thundercougarfalconbird"
+
+
 ```
 
- - [Facts](https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html): Ansible facts are data related to your remote systems, including operating systems, IP addresses, attached filesystems, and more. With facts, you can use the behavior or state of one system as configuration on other systems.
+### Facts 
+
+Ansible [Facts](https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html) are data related to your remote systems, including operating systems, IP addresses, attached filesystems, and more. With facts, you can use the behavior or state of one system as configuration on other systems.
 
 In this playbook we are utilizing the built in `os_family` fact to determine which update command to run based on the underlying Operating System of the hosts.
 
