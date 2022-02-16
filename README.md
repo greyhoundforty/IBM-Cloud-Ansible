@@ -26,17 +26,112 @@ Ansible has three major kind of uses:
 **Inventory**  
 In Ansible, an [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#intro-inventory) is a set of hosts that Ansible can work against to run commands and playbooks. Once you've defined your inventory, you can use [patterns](https://docs.ansible.com/ansible/latest/user_guide/intro_patterns.html#intro-patterns) to further refine the hosts or groups you want Ansible to run against.
 
+Here is an example `INI` style inventory file from my homelab environment:
+
+```ini
+[homelab]
+neptune ansible_host=192.168.4.100
+ares ansible_host=192.168.4.189 
+dione ansible_host=192.168.4.185
+phobos ansible_host=192.168.4.192 
+io ansible_host=192.168.4.194
+
+[vaultnodes]
+phobos ansible_host=192.168.4.192 
+ares ansible_host=192.168.4.189
+dione ansible_host=192.168.4.185
+
+[consulnodes]
+neptune ansible_host=192.168.4.100
+ares ansible_host=192.168.4.189 
+io ansible_host=192.168.4.194
+```
+
+The headings in brackets are group names, which are used in classifying sets of hosts that you can then interact with using Ansible.  You can and likely will have hosts that exist in more than one group. You can think of groups as a way to track:
+
+ - The `application` or `service` you are interacting with (web servers, dbs, etc)
+ - The `location` of the resources you are dealing with (datacenter, MZR, etc)
+ - The `development` or `deployment` target for the resources (Prod, Dev, etc)
+
+
+You can also store variable values that relate to a specific host or group in inventory. Group variables are a convenient way to apply variables to multiple hosts at once. 
+
+```ini
+[homelab:vars]
+ansible_become=yes
+ansible_ssh_extra_args='-o "StrictHostKeyChecking=no" -o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %h:%p ryan@192.168.122.4"'
+ansible_port=22
+ansible_user=ryan
+
+[control]
+local ansible_connection=local
+```
+
+> If a host is a member of multiple groups, Ansible will read the variables for all groups and then determine which to use based on its own [merging logic](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#how-we-merge).
+ 
 
 **Playbooks**  
-Ansible [playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html) are composed of one or more `plays` in an ordered list. Each play executes part of the overall goal of the playbook, running one or more tasks. Each task calls an Ansible module. You can use the playbook to push out new configuration or confirm the configuration of remote systems.
+Ansible [playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html) are composed of one or more `plays` in an ordered list. Each play executes part of the overall goal of the playbook, running one or more tasks. Each task calls an Ansible module. You can use playbooks to push out new configuration, udpate your database servers, or run complex shell scripts. 
 
+This is an example of a basic playbook that utilizes the built in Ansible [copy](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/copy_module.html) module. 
+
+```yaml 
+---
+  - hosts: all:!control
+    tasks:
+      - name: Send default zsh/bash profile file
+        copy:
+          src: /Users/ryan/Code/host_templates/default-profile
+          dest: /home/ryan/.profile
+          owner: ryan
+          group: ryan
+          mode: 0644
+          backup: yes
+```
+
+At a high level you can think of playbooks as outlining the following 3 things:
+
+ - Which hosts to interact with (Where)
+ - A set of tasks to run against the hosts (What) 
+ - Logic to determine which tasks need to be run on which hosts (When)
 
 **Variables/Facts**  
 With Ansible you can create, retrieve, or discover certain variables containing information about your remote systems or about Ansible itself. 
 
  - [Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html): Ansible uses variables to manage differences between systems. You can define these variables in your playbooks, in your inventory, in re-usable files or roles, or at the command line.
 
+In this example we are providing Variables at the playbook level. We are explicitally setting 2 of the variables, and using Ansibles built in ability to lookup Environmental Variables for our API Key variable.
+
+```yaml
+---
+  - hosts: all:!control
+    vars:
+      ibmcloud_api_key: "{{ lookup('env', 'IC_API_KEY') }}"
+      region: "us-south"
+      project: "thundercougarfalconbird"
+```
+
  - [Facts](https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html): Ansible facts are data related to your remote systems, including operating systems, IP addresses, attached filesystems, and more. With facts, you can use the behavior or state of one system as configuration on other systems.
+
+In this playbook we are utilizing the built in `os_family` fact to determine which update command to run based on the underlying Operating System of the hosts.
+
+```yaml
+---
+  - hosts: all:!control
+    become: true
+    tasks:
+      - name: Update yum packages
+        yum: name=* state=latest
+        when: ansible_facts['os_family'] == "RedHat"
+      - name: Update apt packages
+        apt: upgrade=yes update_cache=yes
+        when: ansible_facts['os_family'] == "Debian"
+      - name: Update Arch packages
+        pacman: upgrade=yes update_cache=yes
+        when: ansible_facts['os_family'] == "Archlinux"
+```
+
+You can also register facts from the output of one task to be used across other tasks and playbooks. You do this using the [set_fact](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/set_fact_module.html) module, but we'll dive more in to that in when we actually deploy an IBM Cloud VPC. 
 
 **Roles**  
 [Roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. After you group your content in roles, you can easily reuse them and share them with other users.

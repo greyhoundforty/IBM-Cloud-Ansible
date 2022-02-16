@@ -2,7 +2,7 @@
 - name: Create VPC Public Gateway and Subnet 
   hosts: localhost
   vars_files: 
-    - vars.yml
+    - ../vars.yml
   collections:
    - ibm.cloudcollection
   tasks:

@@ -2,7 +2,7 @@
 - name: Create Flowlogs collector
   hosts: localhost
   vars_files: 
-    - vars.yml
+    - ../vars.yml
   collections:
    - ibm.cloudcollection
 
