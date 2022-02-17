@@ -3,7 +3,7 @@ This repository is meant for anyone getting started with Ansible. While the code
 
 ## Ansible 101: What is Ansible?
 
-Ansible is an open source infrastructure automation tool initially operated by Redhat. Ansible enables you to tackle deployment, configuration, maintenance, etc. It allows you to quickly run a set of commands against a wide array of infrastructure, or push database configuration changes based on system hostname or OS. 
+Ansible is an open source infrastructure automation tool initially operated by Redhat. Ansible enables you to tackle deployment, configuration, maintenance, etc. It allows you to quickly run a set of commands against a wide array of infrastructure, push database configuration changes based on system hostname or OS, and even provision additional compute resources. 
 
 Ansible is agentless unlike a lot of other infrastructure automation tools, which means you don't actually need to install an agent on the hosts you want to maintain and manage. It uses SSH to communication with the hosts in your environment and is written in Python.  
 
