@@ -1,0 +1,96 @@
+---
+- name: Create VPC Compute resources 
+  hosts: localhost
+  vars_files: 
+    - ../vars.yml
+  collections:
+   - ibm.cloudcollection
+  tasks:
+    - name: "Deploy VPC compute instance"
+      ibm_is_instance:
+        name: "{{ name_prefix }}-vsi"
+        state: available
+        id: "{{ vsi.id | default(omit) }}"
+        vpc: "{{ vpc.id }}"
+        profile: "{{ instance_profile }}"
+        image: "{{ image.id }}"
+        keys:
+          - "{{ sshkey.resource['id'] }}"
+        primary_network_interface:
+          - subnet: "{{ subnet.id }}"
+        zone: "{{ zones[0] }}"
+        resource_group: "{{ resourcegroup }}"
+        tags: 
+          - "owner:ryantiffany"
+          - "deployedwith:ansible"
+      register: vsi_create_output
+
+    - name: Save VSI as fact
+      set_fact:
+        cacheable: True
+        vsi: "{{ vsi_create_output.resource }}"
+
+    - name: Configure Floating IP Address
+      ibm_is_floating_ip:
+        name: "{{ name_prefix }}-fip"
+        state: available
+        id: "{{ fip.id | default(omit) }}"
+        target: "{{ vsi.primary_network_interface[0]['id'] }}"
+      register: fip_create_output
+
+    - name: Save Floating IP as fact
+      set_fact:
+        cacheable: True
+        fip: "{{ fip_create_output.resource }}"
+
+    - name: Print Floating IP Address
+      debug:
+        msg: "IP Address: {{ fip.address }}"
+
+    - name: Configure Security Group Rule to open SSH to a single IP
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ vpc_create_output.resource['default_security_group'] }}"
+        direction: inbound
+        remote: "{{ remote_ip }}"
+        tcp:
+          - port_max: 22
+            port_min: 22
+      when: remote_ip is defined
+
+    - name: Configure Security Group Rule to open SSH on the VSI
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ vpc_create_output.resource['default_security_group'] }}"
+        direction: inbound
+        remote: 0.0.0.0/0
+        tcp:
+          - port_max: 22
+            port_min: 22
+      when: remote_ip is undefined
+
+    - name: Add VSI to Ansible inventory
+      add_host:
+        name: "{{ name_prefix }}-vsi"
+        ansible_host:  "{{ fip.address }}" 
+        ansible_user: root
+        groups: new_vsi
+        ansible_ssh_extra_args: -o StrictHostKeyChecking=no
+
+- name: Check Ansible connection to new DEMO VSI
+  hosts: new_vsi
+  gather_facts: False
+  tasks:
+    - name: Wait for VSI to become reachable over SSH
+      wait_for_connection:
+
+- name: Check Ansible connection to new DEMO VSI
+  hosts: new_vsi
+  tasks:
+    - name: Collect OS information
+      command: cat /etc/os-release
+      register: os_info
+
+    - name: Print OS information
+      debug:
+        var: os_info.stdout_lines

@@ -11,8 +11,26 @@
     - name: "Pull available compute images for {{ region }} region "
       ibm_is_images_info:
       register: images_list
+    - name: Set images as fact
+      set_fact:
+        cacheable: True
+        available: "{{ images_list.resource.images }}"
+      
+    # - name: "List name and ID of available images {{ region }} region"
+    #   debug:
+    #     var: images_list.resource.images |
+    #          items2dict(key_name='name', value_name='id')
 
-    - name: "List name and ID of available images {{ region }} region"
+    - name: "List full details"
       debug:
-        var: images_list.resource.images |
-             items2dict(key_name='name', value_name='id')
+        msg: "{{ available | json_query(\"[?status==`available`].name\") }}"
+
+
+    # - name: Display things
+    #   debug:
+    #     var: item
+    #   loop: "{{ images_list.resource.images | json_query('[][?status==`available`]) }}"
+    
+    # - name: Display Filtered Result - One expression - one liner
+    #   debug:
+    #     msg: "{{ images_list.resource.images | json_query(\"[]\") }}"

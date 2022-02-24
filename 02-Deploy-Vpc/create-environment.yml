@@ -1,7 +1,6 @@
 ---
   - import_playbook: create-vpc.yml
   - import_playbook: create-network.yml
-  - import_playbook: create-compute.yml
   - import_playbook: create-flowlogs.yml
   # - import_playbook: test.yml
   

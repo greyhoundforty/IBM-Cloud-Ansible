@@ -4,7 +4,8 @@ test/*
 # .tfstate files
 *.tfstate
 *.tfstate.*
-
+vars.yaml
+vars.yml
 # Crash log files
 crash.log
 

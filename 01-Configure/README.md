@@ -1,6 +1,6 @@
 # Overview
 
-In this session we will configure Ansible to work with our IBM Cloud account and then run a test playbook to ensure that everything is configured properly. 
+In this session we will configure Ansible to work with our IBM Cloud account and then run a test playbook to ensure that everything is configured properly.
 
 The Ansible collection uses the [IBM Cloud Terraform Provider](https://registry.terraform.io/providers/IBM-Cloud/ibm/latest/docs) configuration and as such we can set some Environmental Variables for use with our Playbooks.
 
@@ -34,15 +34,13 @@ ansible-playbook list-images.yml
 ansible-playbook list-images.yml -e "region=OTHER_VPC_REGION"
 ```
 
-### Listing available compute profiles in VPC
+### Listing available zones in the VPC region 
 
 ```shell
-ansible-playbook list-profiles.yml
-ansible-playbook list-profiles.yml -e "region=OTHER_VPC_REGION"
+ansible-playbook list-zones.yml
+ansible-playbook list-zones.yml -e "region=OTHER_VPC_REGION"
 ```
-
- > This command may fail due to a known issue with the Ansible collections python conversion script. The fix for me is outlined in [here](https://github.com/IBM-Cloud/ansible-collection-ibm/issues/82#issuecomment-1026995864).
 
 ## Next steps
 
-Once you have verified that you can (at least) list the available compute images you can move on to [Part 2](../02-Deploy-Vpc/README.md) where we will deploy some VPC resources and look at our gathered **facts** about the deployment.
+Once you have verified that you can list the available compute images and zones you can move on to [Part 2](../02-Deploy-Vpc/README.md) where we will deploy some VPC resources and look at the **facts** we've gathered about the deployment.

@@ -1,0 +1,22 @@
+---
+- name: List VPC Instance Profiles
+  hosts: localhost
+  vars:
+    ibmcloud_api_key: "{{ lookup('env', 'IC_API_KEY') }}"
+    region: "{{ lookup('env', 'IC_REGION') }}"
+  collections:
+   - ibm.cloudcollection
+  tasks:
+    - name: Save Region as fact
+      set_fact:
+        cacheable: True
+        region: "{{ region }}"
+
+    - name: "Gather zones in {{ region }} region "
+      ibm_is_zones_info:
+        region_: "{{ region }}"
+      register: regional_zones
+
+    - name: List regional zones
+      debug: 
+        msg: "{{ region }} zones: {{ regional_zones.resource.zones }}"
