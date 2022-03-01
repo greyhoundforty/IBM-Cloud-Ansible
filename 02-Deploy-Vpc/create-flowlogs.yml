@@ -21,7 +21,13 @@
         region_location: "{{ region }}"
         storage_class: "standard"
         resource_instance_id: "{{ cos_flowlogs_instance.resource['id'] }}"
+        id: "{{ bucket.id | default(omit) }}"
       register: flowlogs_bucket
+
+    - name: Save Flowlogs bucket as fact
+      set_fact:
+        cacheable: True
+        bucket: "{{ flowlogs_bucket.resource }}"
 
     - name: "Configure flowlogs for VPC"
       ibm_is_flow_log: 
@@ -30,6 +36,7 @@
         target:  "{{ vpc.id }}"
         active: True
         resource_group: "{{ resourcegroup }}"
+        id: "{{ flowlog_collector.id | default(omit) }}"
       register: vpc_flowlog_collector
 
     - name: Set collector as fact for cleanup scripts 
