@@ -36,6 +36,7 @@
         name: "{{ name_prefix }}-vpc"
         state: available
         resource_group: "{{ resourcegroup }}"
+        id: "{{ vpc.id | default(omit) }}"
         tags: 
           - "owner:ryantiffany"
           - "deployedwith:ansible"

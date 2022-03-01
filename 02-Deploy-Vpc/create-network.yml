@@ -12,6 +12,7 @@
         vpc: "{{ vpc.id }}"
         zone: "{{ zones[0] }}"
         resource_group: "{{ resourcegroup }}"
+        id: "{{ pubgw.id | default(omit) }}"
         tags: 
           - "owner:ryantiffany"
           - "deployedwith:ansible"
@@ -22,7 +23,7 @@
         cacheable: True
         pubgw: "{{ pubgw_create_output.resource }}"
 
-    - name: "Configure VPC Subnet in {{ regional_zones.resource.zones[0] }}"
+    - name: "Configure VPC Subnet in {{ zones[0] }}"
       ibm_is_subnet:
         name: "{{ name_prefix }}-subnet"
         state: available
