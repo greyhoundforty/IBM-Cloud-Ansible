@@ -1,0 +1,151 @@
+---
+- name: Create VPC Bastion resources 
+  hosts: localhost
+  vars_files: 
+    - ../vars.yml
+  collections:
+   - ibm.cloudcollection
+  tasks:
+
+    - name: "Gather {{ region }} SSH key to use for VSI"
+      ibm_is_ssh_key_info: 
+        name: "{{ ssh_key }}"
+        resource_group: "{{ resourcegroup }}"
+      register: sshkey
+
+    - name: Create Bastion Security group 
+      ibm_is_security_group:
+        name: "{{ name_prefix }}-bastion-sg"
+        state: available
+        vpc: "{{ vpc.id }}"
+        resource_group: "{{ resourcegroup }}"
+        tags: 
+          - "owner:ryantiffany"
+          - "deployedwith:ansible"
+      register: bastion_sg_create_output
+
+    - name: Save Bastion Security group as fact
+      set_fact:
+        cacheable: True
+        bastion_sg: "{{ bastion_sg_create_output.resource }}"
+
+    - name: Configure Security Group Rule to open SSH to a single IP if remote_ip is defined
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ bastion_sg.id }}"
+        direction: inbound
+        remote: "{{ remote_ip }}"
+        tcp:
+          - port_max: 22
+            port_min: 22
+        id: "{{ single_ip_sg.id | default(omit) }}"
+      when: remote_ip is defined
+      register: bastion_ip_ssh_sg_rule
+
+    - name: Save ssh lockdown as fact
+      set_fact:
+        cacheable: True
+        single_ip_sg: "{{ bastion_ip_ssh_sg_rule.resource }}"
+      when: remote_ip is defined
+
+
+    - name: Configure Security Group Rule to open SSH to the world if remote_ip is not defined
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ bastion_sg.id }}"
+        direction: inbound
+        remote: 0.0.0.0/0
+        tcp:
+          - port_max: 22
+            port_min: 22
+      when: remote_ip is undefined
+      register: bastion_open_ssh_sg_rule
+
+    - name: Configure ICMP Security Group Rule 
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ bastion_sg.id }}"
+        direction: inbound
+        remote: 0.0.0.0/0
+        icmp:
+          - code: 0
+            type: 8
+      register: bastion_icmp_sg_rule
+
+    - name: Configure all outbound security group rule
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ bastion_sg.id }}"
+        direction: outbound
+        remote: 0.0.0.0/0
+      register: bastion_all_out_sg_rule
+    
+    - name: "Deploy VPC Bastion instance"
+      ibm_is_instance:
+        name: "{{ name_prefix }}-bastion"
+        state: available
+        id: "{{ bastion.id | default(omit) }}"
+        vpc: "{{ vpc.id }}"
+        profile: "{{ instance_profile }}"
+        image: "{{ image.id }}"
+        user_data: ../user.yml
+        keys:
+          - "{{ sshkey.resource['id'] }}"
+        primary_network_interface:
+          - subnet: "{{ subnet.id }}"
+            security_groups: 
+              - "{{ bastion_sg.id }}"
+        zone: "{{ zones[0] }}"
+        resource_group: "{{ resourcegroup }}"
+        tags: 
+          - "owner:ryantiffany"
+          - "deployedwith:ansible"
+      register: bastion_create_output
+
+    - name: Save VSI as fact
+      set_fact:
+        cacheable: True
+        bastion: "{{ bastion_create_output.resource }}"
+
+    - name: Configure Floating IP Address
+      ibm_is_floating_ip:
+        name: "{{ name_prefix }}-bastion-fip"
+        state: available
+        id: "{{ fip.id | default(omit) }}"
+        target: "{{ bastion.primary_network_interface[0]['id'] }}"
+      register: fip_create_output
+
+    - name: Save Floating IP as fact
+      set_fact:
+        cacheable: True
+        fip: "{{ fip_create_output.resource }}"
+
+    - name: Print Floating IP Address
+      debug:
+        msg: "IP Address: {{ fip.address }}"
+
+    - name: Add Bastion to Ansible inventory
+      add_host:
+        name: "{{ name_prefix }}-bastion"
+        ansible_host:  "{{ fip.address }}" 
+        ansible_user: root
+        groups: landingzone
+        ansible_port: 22
+
+- name: Check Ansible connection to new Bastion Instance
+  hosts: landingzone
+  gather_facts: False
+  tasks:
+    - name: Wait for VSI to become reachable over SSH
+      wait_for_connection:
+
+- name: Check Ansible connection to new DEMO VSI
+  hosts: landingzone
+  tasks:
+    - name: Collect OS information
+      command: cat /etc/os-release
+      register: os_info
+
+    - name: Print OS information
+      debug:
+        var: os_info.stdout_lines

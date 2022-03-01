@@ -1,96 +1,164 @@
 ---
-- name: Create VPC Compute resources 
+- name: Create VPC HashiStack instances 
   hosts: localhost
   vars_files: 
     - ../vars.yml
   collections:
    - ibm.cloudcollection
   tasks:
-    - name: "Deploy VPC compute instance"
-      ibm_is_instance:
-        name: "{{ name_prefix }}-vsi"
+
+    - name: Create HashiStack Security group 
+      ibm_is_security_group:
+        name: "{{ name_prefix }}-hashi-sg"
         state: available
-        id: "{{ vsi.id | default(omit) }}"
         vpc: "{{ vpc.id }}"
-        profile: "{{ instance_profile }}"
-        image: "{{ image.id }}"
-        keys:
-          - "{{ sshkey.resource['id'] }}"
-        primary_network_interface:
-          - subnet: "{{ subnet.id }}"
-        zone: "{{ zones[0] }}"
         resource_group: "{{ resourcegroup }}"
         tags: 
           - "owner:ryantiffany"
           - "deployedwith:ansible"
-      register: vsi_create_output
+      register: hashi_sg_create_output
 
-    - name: Save VSI as fact
+    - name: Save HashiStack Security group as fact
       set_fact:
         cacheable: True
-        vsi: "{{ vsi_create_output.resource }}"
+        hashi_sg: "{{ hashi_sg_create_output.resource }}"
 
-    - name: Configure Floating IP Address
-      ibm_is_floating_ip:
-        name: "{{ name_prefix }}-fip"
-        state: available
-        id: "{{ fip.id | default(omit) }}"
-        target: "{{ vsi.primary_network_interface[0]['id'] }}"
-      register: fip_create_output
-
-    - name: Save Floating IP as fact
-      set_fact:
-        cacheable: True
-        fip: "{{ fip_create_output.resource }}"
-
-    - name: Print Floating IP Address
-      debug:
-        msg: "IP Address: {{ fip.address }}"
-
-    - name: Configure Security Group Rule to open SSH to a single IP
+    - name: Configure Security Group Rules for bastion access
       ibm_is_security_group_rule:
         state: available
-        group: "{{ vpc_create_output.resource['default_security_group'] }}"
+        group: "{{ hashi_sg.id }}"
         direction: inbound
-        remote: "{{ remote_ip }}"
+        remote: "{{ bastion_sg.id }}"
         tcp:
           - port_max: 22
             port_min: 22
-      when: remote_ip is defined
+      register: ssh_from_bastion_sg_rule
 
-    - name: Configure Security Group Rule to open SSH on the VSI
+    - name: Configure Security Group Rules for Consul TCP ports
       ibm_is_security_group_rule:
         state: available
-        group: "{{ vpc_create_output.resource['default_security_group'] }}"
+        group: "{{ hashi_sg.id }}"
         direction: inbound
         remote: 0.0.0.0/0
         tcp:
-          - port_max: 22
-            port_min: 22
-      when: remote_ip is undefined
+          - port_max: "{{ item }}"
+            port_min: "{{ item }}"
+      loop:
+        - 6500
+        - 8500
+        - 8300
+        - 8301
+        - 8302
+      register: consul_tcp_sg_rule
 
-    - name: Add VSI to Ansible inventory
-      add_host:
-        name: "{{ name_prefix }}-vsi"
-        ansible_host:  "{{ fip.address }}" 
-        ansible_user: root
-        groups: new_vsi
-        ansible_ssh_extra_args: -o StrictHostKeyChecking=no
+    - name: Configure Security Group Rules for Consul UDP ports
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ hashi_sg.id }}"
+        direction: inbound
+        remote: 0.0.0.0/0
+        udp:
+          - port_max: "{{ item }}"
+            port_min: "{{ item }}"
+      loop:
+        - 6500
+        - 8301  
+        - 8302
+      run_once: True
+      register: consul_udp_sg_rule
 
-- name: Check Ansible connection to new DEMO VSI
-  hosts: new_vsi
-  gather_facts: False
-  tasks:
-    - name: Wait for VSI to become reachable over SSH
-      wait_for_connection:
+    - name: Configure Security Group Rules for Vault TCP ports
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ hashi_sg.id }}"
+        direction: inbound
+        remote:  0.0.0.0/0
+        tcp:
+          - port_max: "{{ item }}"
+            port_min: "{{ item }}"
+      loop:
+        - 8200
+        - 8201
+      register: vault_tcp_sg_rule
 
-- name: Check Ansible connection to new DEMO VSI
-  hosts: new_vsi
-  tasks:
-    - name: Collect OS information
-      command: cat /etc/os-release
-      register: os_info
+    - name: Configure all outbound security group rule
+      ibm_is_security_group_rule:
+        state: available
+        group: "{{ hashi_sg.id }}"
+        direction: outbound
+        remote: 0.0.0.0/0
+      register: hashi_all_out_sg_rule
 
-    - name: Print OS information
+    - name: Create Hashistack Instance template
+      ibm_is_instance_template:
+        name: "{{ name_prefix }}-hashi-template"
+        state: available
+        id: "{{ hashi_template.id | default(omit) }}"
+        vpc: "{{ vpc.id }}"
+        profile: "{{ instance_profile }}"
+        image: "{{ image.id }}"
+        user_data: ../user.yml
+        keys:
+          - "{{ sshkey.resource['id'] }}"
+        primary_network_interface:
+          - subnet: "{{ subnet.id }}"
+            security_groups: 
+              - "{{ bastion_sg.id }}"
+              - "{{ hashi_sg.id }}"
+        zone: "{{ zones[0] }}"
+        resource_group: "{{ resourcegroup }}"
+      register: hashi_template_create_output
+
+    - name: Save Hashistack Template as fact
+      set_fact:
+        cacheable: True
+        hashitemplate: "{{ hashi_template_create_output.resource }}"
+
+    - name: Create Hashistack Instance Group
+      ibm_is_instance_group:
+        name: "{{ name_prefix }}-hashi-instance"
+        state: available
+        id: "{{ hashi_group.id | default(omit) }}"
+        instance_template: "{{ hashi_template_create_output.resource['id'] }}"
+        instance_count: 3
+        subnets: "{{ subnet.id }}"
+        resource_group: "{{ resourcegroup }}"
+        tags: 
+          - "owner:ryantiffany"
+          - "deployedwith:ansible"
+      register: hashi_group
+
+    - name: Save Hashistack Group as fact
+      set_fact:
+        cacheable: True
+        hashi_group: "{{ hashi_group.resource }}"
+
+    - name: Look at output 
       debug:
-        var: os_info.stdout_lines
+        msg: "{{ hashi_group }}"
+
+
+    # - name: Add Bastion to Ansible inventory
+    # - add_host:
+    #     name: "{{ item }}"
+    #     group: guests
+    #   changed_when: false
+    #   loop: "{{ hashi_group.resource | map('extract', hostvars, 'result_virsh') | map(attribute='stdout_lines') | flatten }}"
+
+# - name: Check Ansible connection to new Bastion Instance
+#   hosts: landingzone
+#   gather_facts: False
+#   tasks:
+#     - name: Wait for VSI to become reachable over SSH
+#       wait_for_connection:
+
+# - name: Check Ansible connection to new DEMO VSI
+#   hosts: landingzone
+#   tasks:
+#     - name: Collect OS information
+#       command: cat /etc/os-release
+#       register: os_info
+
+#     - name: Print OS information
+#       debug:
+#         var: os_info.stdout_lines

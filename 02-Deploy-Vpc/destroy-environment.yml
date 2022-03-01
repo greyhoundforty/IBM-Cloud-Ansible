@@ -1,0 +1,50 @@
+---
+- name: Destroy IBM Cloud VPC VSI
+  hosts: localhost
+  vars_files: 
+    - ../vars.yml
+  collections:
+   - ibm.cloudcollection
+  tasks:
+
+    - name: Release Floating IP
+      ibm_is_floating_ip:
+        state: absent
+        id: "{{ fip.id }}"
+      when: fip is defined
+
+    - name: Spin down Hashistack instance group
+      ibm_is_instance_group: 
+        state: absent
+        id: "{{ hashi_group.id }}"
+      when: hashi_group is defined
+
+    - name: Remove Bastion instance
+      ibm_is_instance:
+        state: absent
+        id: "{{ bastion.id }}"
+      when: bastion is defined
+
+    - name: Remove VPC Subnet
+      ibm_is_subnet:
+        state: absent
+        id: "{{ subnet.id }}"
+      when: subnet is defined
+
+    - name: Remove Public Gateway
+      ibm_is_public_gateway:
+        state: absent
+        id: "{{ pubgw.id }}"
+      when: pubgw is defined
+
+    - name: Remove flowlogs collector
+      ibm_is_flow_log: 
+        state: absent 
+        id: "{{ flowlog_collector.id }}"
+      when: flowlog_collector is defined
+
+    - name: Remove VPC
+      ibm_is_vpc:
+        state: absent
+        id: "{{ vpc.id }}"
+      when: vpc is defined

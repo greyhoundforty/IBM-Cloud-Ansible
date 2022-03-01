@@ -1,11 +1,14 @@
 # Local .terraform directories
 **/.terraform/*
 test/*
+*.plist
+notes.md
 # .tfstate files
 *.tfstate
 *.tfstate.*
 vars.yaml
 vars.yml
+user.yml
 # Crash log files
 crash.log
 

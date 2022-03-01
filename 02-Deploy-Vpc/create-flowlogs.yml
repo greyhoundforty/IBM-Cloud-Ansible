@@ -30,3 +30,9 @@
         target:  "{{ vpc.id }}"
         active: True
         resource_group: "{{ resourcegroup }}"
+      register: vpc_flowlog_collector
+
+    - name: Set collector as fact for cleanup scripts 
+      set_fact:
+        cacheable: True
+        flowlog_collector: "{{ vpc_flowlog_collector.resource }}"
