@@ -7,7 +7,6 @@ notes.md
 *.tfstate
 *.tfstate.*
 vars.yaml
-vars.yml
 user.yml
 # Crash log files
 crash.log
